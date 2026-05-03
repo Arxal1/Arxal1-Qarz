@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: qarzi_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 4569123780_Wl
+      POSTGRES_DB: qarzi
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  app:
+      build: .
+      container_name: qarzi_app
+      restart: always
+      ports:
+        - "8080:8080"
+      env_file:
+        - .env
+      environment:
+        - DB_HOST=db
+      depends_on:
+        - db
+
+volumes:
+  pgdata:
