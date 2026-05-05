@@ -25,7 +25,9 @@ func (r *EventRepo) CreateShipment(e *model.Event) error {
 			VALUES ($1, 'shipment', $2, 'confirmed', $3, $4)
 			RETURNING id, created_at, updated_at
 	`
-	err = tx.QueryRow(insertEventQuery, e.ClientID, e.Amount, e.Description, e.CreatedBy).Scan(&e.ID, &e.CreatedAt, &e.UpdatedAt)
+	var currentDebt int64
+
+	err = tx.QueryRow(`SELECT debt_limit FROM clients WHERE id = $1`, insertEventQuery, e.ClientID, e.Amount, e.Description, e.CreatedBy).Scan(&e.ID, &currentDebt, &e.CreatedAt, &e.UpdatedAt)
 	if err != nil {
 		log.Println("❌ Ошибка при записи события отгрузки:", err)
 		return err

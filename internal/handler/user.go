@@ -26,6 +26,16 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.TelegramID <= 0 {
+		http.Error(w, `{"error": "Invalid telegram_id"}`, http.StatusBadRequest)
+		return
+	}
+
+	if req.FullName == "" {
+		http.Error(w, `{"error": "full_name is required"}`, http.StatusBadRequest)
+		return
+	}
+
 	user := &model.User{
 		TelegramID: req.TelegramID,
 		FullName:   &req.FullName,
@@ -33,6 +43,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.Repo.CreateUser(user); err != nil {
 		http.Error(w, `{"error": "Ошибка при создании пользователя"}`, http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

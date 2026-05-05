@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	"qarzi/internal/model"
 )
@@ -25,23 +28,12 @@ func (r *UserRepo) CreateUser(u *model.User) error {
 	err := r.DB.QueryRow(query, u.TelegramID, u.FullName).Scan(&u.ID, &u.CreatedAt)
 	if err != nil {
 		log.Println("❌ Ошибка при сохранении пользователя в БД:", err)
-		return err
+		return fmt.Errorf("❌ не удалось создать пользователя: %w", err)
 	}
 
 	return nil
 
 }
-
-package repository
-
-import (
-	"context"
-	"database/sql"
-	"errors"
-	"log"
-	"qarzi/internal/model"
-)
-
 
 func (r *UserRepo) GetUserByTelegramID(ctx context.Context, telegramID int64) (*model.User, error) {
 	query := `

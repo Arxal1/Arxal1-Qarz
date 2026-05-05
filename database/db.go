@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"qarzi/config"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -17,6 +18,10 @@ func Connect(cfg config.DatabaseConfig) *sql.DB {
 	if err != nil {
 		log.Fatal("Ошибка инициализации базы данных:", err)
 	}
+
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
 
 	if err := db.Ping(); err != nil {
 		log.Fatal("База данных не отвечает:", err)
