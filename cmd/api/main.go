@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"qarzi/config"
 	"qarzi/database"
+	"qarzi/internal/delivery/bot"
+	"qarzi/internal/handler"
+	"qarzi/internal/repository"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -19,8 +22,17 @@ func main() {
 
 	database.RunMigrations(cfg.Database)
 
-	r := chi.NewRouter()
+	userRepo := repository.NewUserRepo(db)
+	userHandler := handler.NewUserHandler(userRepo)
 
+	businessRepo := repository.NewBusinessRepo(db)
+	businessHandler := handler.NewBusinessHandler(businessRepo)
+	tgBot, err := bot.NewBot(cfg.Telegram.BotToken, userRepo)
+	if err != nil {
+		log.Fatal("❌ Ошибка при инициализации Telegram бота: ", err)
+	}
+
+	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer) //ошибка 500
 
@@ -29,8 +41,17 @@ func main() {
 		fmt.Fprint(w, `{"status": "ok", "project": "Qarzi"}`)
 	})
 
-	addr := ":" + cfg.App.Port
-	log.Println("Сервер запущен на http://localhost:8080", addr, cfg.App.Env)
-	log.Fatal(http.ListenAndServe(addr, r))
+	r.Post("/api/users/register", userHandler.Register)
+	r.Post("/api/businesses/register", businessHandler.RegisterBusiness)
 
+	addr := ":" + cfg.App.Port
+
+	go func() {
+		log.Printf("HTTP-сервер запущен на http://localhost%s (режим: %s)", addr, cfg.App.Env)
+		if err := http.ListenAndServe(addr, r); err != nil {
+			log.Fatal("❌ Ошибка при запуске HTTP-сервера: ", err)
+		}
+	}()
+
+	tgBot.Start()
 }

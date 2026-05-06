@@ -49,7 +49,7 @@ func Load() *Config {
 			Password: getEnv("DB_PASSWORD", ""),
 		},
 		Telegram: TelegramConfig{
-			BotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
+			BotToken: getEnv("TELEGRAM_BOT_TOKEN", "8653373082:AAEiVC26hqty7J4uuhEkA5IYXVICOasdP_k"),
 		},
 	}
 }
