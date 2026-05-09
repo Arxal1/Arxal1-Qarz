@@ -9,6 +9,7 @@ import (
 	"qarzi/internal/delivery/bot"
 	"qarzi/internal/handler"
 	"qarzi/internal/repository"
+	"qarzi/internal/worker"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -25,9 +26,18 @@ func main() {
 	userRepo := repository.NewUserRepo(db)
 	userHandler := handler.NewUserHandler(userRepo)
 
+	//бизнес
 	businessRepo := repository.NewBusinessRepo(db)
 	businessHandler := handler.NewBusinessHandler(businessRepo)
+	//клиент
+	clientRepo := repository.NewClientRepo(db)
+	clientHandler := handler.NewClientHandler(clientRepo)
+	//событие
+	eventRepo := repository.NewEventRepo(db)
+	eventHandler := handler.NewEventHandler(eventRepo)
+
 	tgBot, err := bot.NewBot(cfg.Telegram.BotToken, userRepo)
+
 	if err != nil {
 		log.Fatal("❌ Ошибка при инициализации Telegram бота: ", err)
 	}
@@ -43,6 +53,8 @@ func main() {
 
 	r.Post("/api/users/register", userHandler.Register)
 	r.Post("/api/businesses/register", businessHandler.RegisterBusiness)
+	r.Post("/api/clients/register", clientHandler.CreateClient)
+	r.Post("/api/events/shipment", eventHandler.CreateShipment)
 
 	addr := ":" + cfg.App.Port
 
@@ -52,6 +64,6 @@ func main() {
 			log.Fatal("❌ Ошибка при запуске HTTP-сервера: ", err)
 		}
 	}()
-
+	worker.StartReminderWorker(tgBot.Bot, eventRepo)
 	tgBot.Start()
 }
