@@ -55,6 +55,11 @@ func main() {
 	r.Post("/api/businesses/register", businessHandler.RegisterBusiness)
 	r.Post("/api/clients/register", clientHandler.CreateClient)
 	r.Post("/api/events/shipment", eventHandler.CreateShipment)
+	r.Get("/api/clients/{clientID}/statement", eventHandler.GetClientStatement)
+	r.Post("/api/payments", eventHandler.InitiatePayment)
+	r.Patch("/api/payments/{eventID}/confirm", eventHandler.ConfirmPayment)
+	r.Patch("/api/events/{eventID}/dispute", eventHandler.DisputeEvent)
+	r.Post("/api/events/{eventID}/adjust", eventHandler.AdjustEvent)
 
 	addr := ":" + cfg.App.Port
 
